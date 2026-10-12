@@ -47,7 +47,6 @@ try {
     $error_filtro_citas = "Error al cargar listas: " . $e->getMessage();
 }
 
-// Consulta usando la vista restringida al médico autenticado
 $sql_avanzada = "SELECT fecha_hora, paciente, medico, especialidad, centro_medico, estado 
                  FROM vista_citas_resumen 
                  WHERE rut_medico = :rut_medico";
@@ -156,8 +155,7 @@ $resultados = [];
 
 if ($busqueda !== '') {
     try {
-        $sql = "
-            SELECT 
+        $sql = "SELECT 
                 m.rut_medico,
                 m.nombre_completo AS medico,
                 GROUP_CONCAT(DISTINCT e.nombre ORDER BY e.nombre SEPARATOR ', ') AS especialidades,
@@ -191,8 +189,7 @@ $resultados_citas = [];
 $error_citas = null;
 
 try {
-        $sql = "
-            SELECT TIME_FORMAT(c.fecha_hora, '%H:%i') AS hora, p.nombre_completo, c.rut_paciente, pre.nombre as nombre_prevision, cm.nombre as centro_medico, e.estado as estado_cita, c.id_cita
+        $sql = "SELECT TIME_FORMAT(c.fecha_hora, '%H:%i') AS hora, p.nombre_completo, c.rut_paciente, pre.nombre as nombre_prevision, cm.nombre as centro_medico, e.estado as estado_cita, c.id_cita
             FROM cita c
             INNER JOIN paciente p ON p.rut_paciente = c.rut_paciente
             INNER JOIN prevision pre ON pre.id_prevision = p.id_prevision

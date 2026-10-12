@@ -196,7 +196,6 @@ if (!empty($cita_actual) && !empty($sel_fecha)) {
         <br>
         <hr>
 
-        <!-- Formulario GET para seleccionar la nueva fecha manteniendo el id_cita -->
         <form action="reprogramar.php" method="GET">
             <input type="hidden" name="id_cita" value="<?php echo htmlspecialchars($cita_actual['id_cita']); ?>">
             <div>
@@ -206,7 +205,6 @@ if (!empty($cita_actual) && !empty($sel_fecha)) {
             </div>
         </form>
 
-        <!-- Bloque de selección de horarios disponibles -->
         <?php if (!empty($sel_fecha)): ?>
             <br>
             <form action="reprogramar.php" method="POST">

@@ -113,8 +113,6 @@ $estadisticas_centros = [];
 $top_diagnosticos = [];
 
 try {
-    // 1. Total de citas y porcentaje de inasistencia por cada centro médico
-    // Nota: Id_Estado = 4 corresponde a 'No asistio'
     $sql_centros = "SELECT 
             cm.codigo_centro,
             cm.nombre AS centro_nombre,
@@ -134,7 +132,6 @@ try {
     $stmt_centros = $pdo->query($sql_centros);
     $estadisticas_centros = $stmt_centros->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Los 5 diagnósticos más frecuentes de toda la red
     $sql_diag = "SELECT 
             d.codigo_d,
             d.descripcion,
@@ -152,9 +149,7 @@ try {
     $error_panel = "Error al cargar las estadísticas del panel: " . $e->getMessage();
 }
 
-// =========================================================
-// PUNTO 3.5: BÚSQUEDA AVANZADA (ADMIN - TODAS LAS CITAS)
-// =========================================================
+
 $f_fecha_desde  = trim($_GET['f_fecha_desde'] ?? '');
 $f_fecha_hasta  = trim($_GET['f_fecha_hasta'] ?? '');
 $f_centro       = trim($_GET['f_centro'] ?? '');
@@ -167,7 +162,6 @@ $f_prevision    = trim($_GET['f_prevision'] ?? '');
 $citas_avanzadas = [];
 $error_filtro_citas = '';
 
-// Listas para los desplegables
 $filtro_opts_centros        = [];
 $filtro_opts_regiones       = [];
 $filtro_opts_especialidades = [];
@@ -186,7 +180,6 @@ try {
     $error_filtro_citas = "Error al cargar opciones de filtros: " . $e->getMessage();
 }
 
-// El Administrador ve todas las citas (condición base verdadera: 1=1)
 $sql_avanzada = "SELECT fecha_hora, paciente, medico, especialidad, centro_medico, estado 
                  FROM vista_citas_resumen 
                  WHERE 1=1";
@@ -362,7 +355,6 @@ try {
 
         <br>
 
-        <!-- Sección 2: Top 5 Diagnósticos Más Frecuentes -->
         <h3>Top 5 Diagnósticos Más Frecuentes de la Red</h3>
         <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
             <thead>

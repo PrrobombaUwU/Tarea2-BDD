@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// 1. Verificación de sesión y rol
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'medico') {
     header("Location: login.php");
     exit();
@@ -20,10 +19,9 @@ if (!$id_cita) {
 $mensaje_exito = '';
 $mensaje_error = '';
 
-// 2. Validar que la cita pertenezca al médico y obtener datos
+
 try {
-    $sql_cita = "
-        SELECT 
+    $sql_cita = "SELECT 
             c.id_cita,
             c.fecha_hora,
             c.rut_paciente,
@@ -53,7 +51,6 @@ try {
     die("Error al consultar la cita: " . $e->getMessage());
 }
 
-// 3. Buscar si ya existe la atención
 $atencion = null;
 try {
     $stmt_at = $pdo->prepare("SELECT * FROM atencion WHERE id_cita = :id_cita LIMIT 1");
@@ -63,13 +60,9 @@ try {
     $mensaje_error = "Error al verificar la atención: " . $e->getMessage();
 }
 
-// 4. ACCIONES POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'])) {
     $accion = $_POST['accion'];
 
-    // -----------------------------------------------------------
-    // A) GUARDAR O ACTUALIZAR ATENCIÓN PRINCIPAL
-    // -----------------------------------------------------------
     if ($accion === 'guardar_atencion') {
         $motivo = trim($_POST['motivo_consulta'] ?? '');
         $obs    = trim($_POST['obs_clinicas'] ?? '');
@@ -118,9 +111,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'])) {
         }
     }
 
-    // -----------------------------------------------------------
-    // B) SUBCOMPONENTE: DIAGNÓSTICOS
-    // -----------------------------------------------------------
     elseif ($accion === 'agregar_diagnostico' && $atencion) {
         $codigo_d = trim($_POST['codigo_d'] ?? '');
         if (!empty($codigo_d)) {
@@ -144,9 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'])) {
         }
     }
 
-    // -----------------------------------------------------------
-    // C) SUBCOMPONENTE: RECETAS
-    // -----------------------------------------------------------
+
     elseif ($accion === 'agregar_receta' && $atencion) {
         $medicamento = trim($_POST['medicamento'] ?? '');
         $dosis       = trim($_POST['dosis'] ?? '');
@@ -206,16 +194,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'])) {
     }
 }
 
-// 5. Cargar datos relacionados de la atención
 $diagnosticos_atencion = [];
 $recetas_atencion = [];
 $catalogo_diagnosticos = [];
 
 if ($atencion) {
     try {
-        // Diagnósticos de esta atención
-        $sql_diag = "
-            SELECT d.codigo_d, d.descripcion 
+        $sql_diag = "SELECT d.codigo_d, d.descripcion 
             FROM atencion_diagnostico ad
             INNER JOIN diagnostico d ON ad.codigo_d = d.codigo_d
             WHERE ad.id_atencion = :id_at
@@ -224,12 +209,10 @@ if ($atencion) {
         $stmt_diag->execute([':id_at' => $atencion['id_atencion']]);
         $diagnosticos_atencion = $stmt_diag->fetchAll(PDO::FETCH_ASSOC);
 
-        // Recetas de esta atención
         $stmt_r = $pdo->prepare("SELECT * FROM receta WHERE id_atencion = :id_at ORDER BY id_receta ASC");
         $stmt_r->execute([':id_at' => $atencion['id_atencion']]);
         $recetas_atencion = $stmt_r->fetchAll(PDO::FETCH_ASSOC);
 
-        // Catálogo global de diagnósticos para el selector
         $catalogo_diagnosticos = $pdo->query("SELECT codigo_d, descripcion FROM diagnostico ORDER BY descripcion ASC")->fetchAll(PDO::FETCH_ASSOC);
 
     } catch (PDOException $e) {
@@ -259,7 +242,6 @@ if ($atencion) {
         </p>
     <?php endif; ?>
 
-    <!-- Resumen Cita (Vista 2 del Anexo del PDF) -->
     <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 750px; background-color: #fafafa;">
         <tr>
             <th style="width: 25%; text-align: left;">N° de Cita:</th>
@@ -283,7 +265,6 @@ if ($atencion) {
 
     <br>
 
-    <!-- Formulario 1: Motivo y Observaciones -->
     <form action="registroatencion.php?id_cita=<?php echo urlencode($id_cita); ?>" method="POST" style="max-width: 750px;">
         <input type="hidden" name="id_cita" value="<?php echo htmlspecialchars($id_cita); ?>">
 
@@ -307,7 +288,6 @@ if ($atencion) {
     <?php if ($atencion): ?>
         <hr>
 
-        <!-- SECCIÓN DIAGNÓSTICOS (CIE-10) -->
         <h3>Diagnósticos Asociados</h3>
 
         <form action="registroatencion.php?id_cita=<?php echo urlencode($id_cita); ?>" method="POST" style="margin-bottom: 15px;">
@@ -357,10 +337,8 @@ if ($atencion) {
 
         <hr>
 
-        <!-- SECCIÓN RECETAS -->
         <h3>Prescripciones / Recetas Médicas</h3>
 
-        <!-- Formulario agregar nueva receta -->
         <form action="registroatencion.php?id_cita=<?php echo urlencode($id_cita); ?>" method="POST" style="margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border: 1px solid #ddd; max-width: 730px;">
             <input type="hidden" name="id_cita" value="<?php echo htmlspecialchars($id_cita); ?>">
             <strong>Agregar medicamento:</strong><br>
